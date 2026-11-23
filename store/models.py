@@ -29,6 +29,8 @@ class Products(models.Model):
         # gt == greater than 
         return self.discounts.filter(start_time__lt=now, end_time__gt=now)
 
+    
+
 class Discount(models.Model):
     type_discount = models.CharField(max_length=50)
     value = models.FloatField(default=0)
