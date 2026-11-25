@@ -25,8 +25,6 @@ class Products(models.Model):
     
     def get_discount(self):
         now = datetime.now()
-        # lt == less then
-        # gt == greater than 
         return self.discounts.filter(start_time__lt=now, end_time__gt=now)
 
     

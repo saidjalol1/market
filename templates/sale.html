@@ -8,84 +8,87 @@
             </div>
             <main class="page page--sale">
                 <div class="pane">
-                    <form class="bar" action="#sale" method="get" style="margin-bottom:10px"><input type="search" id="q"
-                            name="q" placeholder="Search or scan barcode (F2)" style="flex:1"><button
-                            class="sec">Search</button></form>
-                    <form class="cat" action="#sale" method="get"><label><input type="radio" name="cat"
-                                checked><span>All</span></label><label><input type="radio"
-                                name="cat"><span>Bakery</span></label><label><input type="radio"
-                                name="cat"><span>Dairy</span></label><label><input type="radio"
-                                name="cat"><span>Produce</span></label><label><input type="radio"
-                                name="cat"><span>Grocery</span></label><label><input type="radio"
-                                name="cat"><span>Household</span></label></form>
+                    <form class="bar" method="get" style="margin-bottom:10px">
+                        <input type="search" id="q" name="barcode" placeholder="Search or scan barcode (F2)" onchange="this.form.requestSubmit()" style="flex:1">
+                    </form>
+
+                    <form class="cat" method="get">
+                        <label>
+                            <input type="submit" name="all_cat" value="">
+                            <span>All</span>
+                        </label>
+                        {% for ctg in categories %}
+                        <label>
+                            <input type="submit" name="cat_filter" value={{ ctg.id }}>
+                            <span>{{ ctg.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </form>
+
+                    {% if messages %}
+                        {% for msg in messages %}
+                            <p style="width:100%;color:yellow;text-align:center;">{{ msg }}</p>
+                        {% endfor %}
+                    {% endif %}
+
                     <div class="prods">
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1001"><span class="e">🍞</span><b>White bread</b><small>1001 · 48 in
-                                stock</small><span class="pr">$0.90</span><button>Add</button></form>
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1002"><span class="e">🥛</span><b>Milk 1L</b><small>1002 · 32 in
-                                stock</small><span class="pr">$1.20 <s>$1.50</s> <span
-                                    class="tag">−20%</span></span><button>Add</button></form>
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1003"><span class="e">🍎</span><b>Red apples (kg)</b><small>1003 · 18
-                                kg</small><span class="pr">$2.40</span><button>Add</button></form>
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1004"><span class="e">🥚</span><b>Eggs ×10</b><small>1004 · <span class="tag y">9
-                                    left</span></small><span class="pr">$2.10</span><button>Add</button></form>
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1005"><span class="e">🍚</span><b>Rice 1kg</b><small>1005 · 60 in
-                                stock</small><span class="pr">$1.80 <s>$2.00</s> <span
-                                    class="tag">−10%</span></span><button>Add</button></form>
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1006"><span class="e">🧴</span><b>Dish soap</b><small>1006 · 24 in
-                                stock</small><span class="pr">$2.90</span><button>Add</button></form>
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1007"><span class="e">☕</span><b>Instant coffee</b><small>1007 · 15 in
-                                stock</small><span class="pr">$4.50</span><button>Add</button></form>
-                        <form class="prod" action="#sale" method="post"><input type="hidden" name="sku"
-                                value="1008"><span class="e">🍫</span><b>Chocolate bar</b><small>1008 · <span
-                                    class="tag r">Out of stock</span></small><span class="pr">$1.10</span><button
-                                disabled>Add</button></form>
+                       {% if products.count > 0 %}
+                             {% for product in products %}
+                                <form class="prod" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="barcode" value="{{ product.barcode }}">
+                                    <input type="hidden" name="check" value="{{ open_check.id }}">
+                                    <b>{{ product.name }}</b>
+                                    {% if prduct.store_amount == 0 %}
+                                        <small>{{ product.barcode}} · <span class="tag r">Out of stock</span></small>
+                                    {% elif product.store_amount < 10 %}
+                                <small>{{ product.barcode}} · <span class="tag y">{{ product.store_amount }}</span> in stock</small>
+                                    {% else %}
+                                <small>{{ product.barcode}} · {{ product.store_amount }} in stock</small>
+                                    {% endif %}
+                                    <span class="pr">{{ product.sell_price }} so'm</span>
+                                    <button type="submit" name="add_to_check">Add</button>
+                                </form>
+                            {% endfor %}
+                        {% else %}
+                            <p style="width:100%;color:yellow;text-align:center;">Mahuslot topilmadi !</p>
+                        {% endif %}
+
                     </div>
                 </div>
 
                 <div class="card pane">
-                    <div class="ch">Receipt #10482 <form action="#sale" method="post"><button class="dg sm"
-                                name="action" value="clear">Clear</button></form>
+                    <div class="ch">Receipt #{{ open_check.id }} 
+                        <form action="#sale" method="post">
+                            <button class="dg sm" name="action" value="clear">Clear</button>
+                        </form>
                     </div>
                     <ul class="lines">
+                        {% for item in open_check.check_items.all %}
                         <li>
-                            <div>Milk 1L<small>$1.20 · −20%</small></div>
-                            <form class="qty" action="#sale" method="post"><button class="sec sm" name="dec"
-                                    value="1002">−</button>2<button class="sec sm" name="inc" value="1002">+</button>
-                            </form><b>$2.40</b>
+                            <div>
+                                {{ item.product.name }}
+                                <small>{{ item.product.sell_price }}  
+                                    {% if item.discount_sum > 0 %}
+                                     · -{{ item.discount_sum}}%
+                                    {% endif %}
+                                    </small>
+                            </div>
+                            <form class="qty" action="#sale" method="post">
+                                <button class="sec sm" name="dec"value="1002">−</button>
+                                {{ item.amount }}
+                                <button class="sec sm" name="inc" value="1002">+</button>
+                            </form>
+                            <b>{{ item.total }} so'm</b>
                         </li>
-                        <li>
-                            <div>White bread<small>$0.90</small></div>
-                            <form class="qty" action="#sale" method="post"><button class="sec sm" name="dec"
-                                    value="1001">−</button>3<button class="sec sm" name="inc" value="1001">+</button>
-                            </form><b>$2.70</b>
-                        </li>
-                        <li>
-                            <div>Rice 1kg<small>$1.80 · −10%</small></div>
-                            <form class="qty" action="#sale" method="post"><button class="sec sm" name="dec"
-                                    value="1005">−</button>1<button class="sec sm" name="inc" value="1005">+</button>
-                            </form><b>$1.80</b>
-                        </li>
-                        <li>
-                            <div>Red apples (kg)<small>$2.40 / kg</small></div>
-                            <form class="qty" action="#sale" method="post"><button class="sec sm" name="dec"
-                                    value="1003">−</button>1.5<button class="sec sm" name="inc" value="1003">+</button>
-                            </form><b>$3.60</b>
-                        </li>
+                        {% endfor %}
                     </ul>
                     <div class="tots">
-                        <div class="tot"><span>Subtotal</span><span>$10.50</span></div>
-                        <div class="tot"><span>Discounts</span><span>−$0.90</span></div>
-                        <div class="tot"><span>Tax 12%</span><span>$1.15</span></div>
-                        <div class="tot b"><span>Total</span><span>$10.75</span></div>
+                        <div class="tot"><span>Subtotal</span><span>{{ open_check.overall }}</span></div>
+                        <div class="tot"><span>Discounts</span><span>−{{ open_check.discount }}</span></div>
+                        <div class="tot b"><span>Total</span><span>{{ open_check.to_pay }}</span></div>
                         <button class="sale-charge" data-open="m-pay"
-                            style="width:100%;padding:11px;margin-top:10px;font-size:15px">Charge $10.75
+                            style="width:100%;padding:11px;margin-top:10px;font-size:15px">Charge {{ open_check.to_pay }}
                             <small>(F9)</small></button>
                     </div>
                 </div>
