@@ -59,8 +59,10 @@
 
                 <div class="card pane">
                     <div class="ch">Receipt #{{ open_check.id }} 
-                        <form action="#sale" method="post">
-                            <button class="dg sm" name="action" value="clear">Clear</button>
+                        <form  method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="check_id" value="{{ open_check.id }}">
+                            <button class="dg sm" name="clear">Clear</button>
                         </form>
                     </div>
                     <ul class="lines">
@@ -74,10 +76,12 @@
                                     {% endif %}
                                     </small>
                             </div>
-                            <form class="qty" action="#sale" method="post">
-                                <button class="sec sm" name="dec"value="1002">−</button>
+                            <form class="qty" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" value="{{ item.id }}" name="item_id">
+                                <button class="sec sm" name="decrement"  type="submit">−</button>
                                 {{ item.amount }}
-                                <button class="sec sm" name="inc" value="1002">+</button>
+                                <button class="sec sm" name="increment"  type="submit">+</button>
                             </form>
                             <b>{{ item.total }} so'm</b>
                         </li>
@@ -92,6 +96,37 @@
                             <small>(F9)</small></button>
                     </div>
                 </div>
+
+                <dialog id="m-pay">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="check_id" value={{ open_check.id }}>
+                        <div class="mh">
+                            Payment 
+                            <button type="button" class="x" data-close>✕</button>
+                        </div>
+                        <div class="mb">
+                            <div class="tot b" style="margin:0 0 12px">
+                                <span>Amount due</span>
+                                <span>{{ open_check.to_pay }}</span>
+                            </div>
+                            <div class="pay" >
+                                <label>
+                                    <input type="radio" name="pay" value="cash" checked>
+                                    <span>💵Cash</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="pay" value="card">
+                                    <span>💳Card</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mf">
+                            <button type="button" class="sec" data-close>Cancel</button>
+                            <button type="submit" name="sell">Complete sale</button>
+                        </div>
+                    </form>
+                </dialog>
             </main>
         </div>
 {% endblock content %}

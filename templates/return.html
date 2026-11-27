@@ -11,12 +11,16 @@
                     <div class="card">
                         <div class="ch">Find receipt</div>
                         <div class="cb">
-                            <form class="bar" action="#return" method="get" style="margin-bottom:12px"><input
-                                    name="receipt" value="10431" style="flex:1" aria-label="Receipt number"><button>Look
-                                    up</button></form>
-                            <div class="tot" style="margin-bottom:8px"><span>Receipt #10431 · 14 Nov, 16:42 · Cashier
-                                    Dilnoza R.</span><span class="tag">Paid by card</span></div>
-                            <form action="#return" method="post">
+                            <form class="bar"  method="get" style="margin-bottom:12px">
+                                <input name="check"  style="flex:1" aria-label="Receipt number">
+                                <button type="submit" name="search_check">Look up</button>
+                            </form>
+                            <div class="tot" style="margin-bottom:8px">
+                                <span>Receipt #{{  check.id }}· {{ check.sold}} · {{ check.user.username }}</span>
+                                <span class="tag">{{ check.payment_type }}</span>
+                            </div>
+                            <form method="post">
+                                {% csrf_token %}
                                 <table>
                                     <thead>
                                         <tr>
@@ -24,61 +28,44 @@
                                             <th>Item</th>
                                             <th class="n">Sold</th>
                                             <th class="n">Return qty</th>
-                                            <th class="n">Price</th>
+                                            {% comment %} <th class="n">Price</th> {% endcomment %}
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {% for item in check.check_items.all %}
                                         <tr>
-                                            <td><input type="checkbox" name="ret" value="1002" checked></td>
-                                            <td>Milk 1L</td>
-                                            <td class="n">2</td>
-                                            <td class="n"><input type="number" name="q1002" min="0" max="2" value="1"
-                                                    style="width:64px;margin:0;display:inline-block"></td>
-                                            <td class="n">$1.20</td>
+                                            <td>
+                                                <input type="checkbox" name="return_items" value="{{ item.id }}" checked>
+                                            </td>
+                                            <td>{{ item.product.name }}</td>
+                                            <td class="n">{{ item.amount }}</td>
+                                            <td class="n">
+                                                <input type="number" name="qty-{{item.id}}" min="0" max="{{ item.max }}" value="1" style="width:64px;margin:0;display:inline-block">
+                                            </td>
+                                            {% comment %} <td class="n">{{ item.product.sell_price }}</td> {% endcomment %}
                                         </tr>
-                                        <tr>
-                                            <td><input type="checkbox" name="ret" value="1001"></td>
-                                            <td>White bread</td>
-                                            <td class="n">1</td>
-                                            <td class="n"><input type="number" name="q1001" min="0" max="1" value="0"
-                                                    style="width:64px;margin:0;display:inline-block"></td>
-                                            <td class="n">$0.90</td>
-                                        </tr>
-                                        <tr>
-                                            <td><input type="checkbox" name="ret" value="1004"></td>
-                                            <td>Eggs ×10</td>
-                                            <td class="n">1</td>
-                                            <td class="n"><input type="number" name="q1004" min="0" max="1" value="0"
-                                                    style="width:64px;margin:0;display:inline-block"></td>
-                                            <td class="n">$2.10</td>
-                                        </tr>
+                                        {% endfor %}
                                     </tbody>
                                 </table>
-                                <div class="row" style="margin-top:14px"><label>Reason<select name="reason">
-                                            <option>Damaged</option>
-                                            <option>Expired</option>
-                                            <option>Wrong item</option>
-                                            <option>Customer changed mind</option>
-                                        </select></label><label>Refund to<select name="method">
-                                            <option>Original payment</option>
-                                            <option>Cash</option>
-                                            <option>Store credit</option>
-                                        </select></label></div>
-                                <button type="button" data-open="m-refund">Review refund…</button>
-                                <dialog id="m-refund">
-                                    <div class="mh">Confirm refund <button type="button" class="x" data-close>✕</button>
-                                    </div>
-                                    <div class="mb">
-                                        <div class="tot"><span>Milk 1L × 1</span><span>$1.20</span></div>
-                                        <div class="tot b"><span>Refund total</span><span>$1.20</span></div>
-                                        <p style="color:var(--mu);margin-bottom:0">Returned to the original card. Items
-                                            marked “restock” go back to inventory.</p><label
-                                            style="margin:12px 0 0"><input type="checkbox" name="restock" checked>Return
-                                            items to stock</label>
-                                    </div>
-                                    <div class="mf"><button type="button" class="sec"
-                                            data-close>Cancel</button><button>Refund $1.20</button></div>
-                                </dialog>
+                                <div class="row" style="margin-top:14px">
+                                    <label>Reason
+                                        <select name="reason">
+                                            <option value="damaged">Damaged</option>
+                                            <option value="expired">Expired</option>
+                                            <option value="wrong item">Wrong item</option>
+                                            <option value="ustomer changed mind">Customer changed mind</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        Refund to
+                                        <select name="payment_type">
+                                            <option value="original">Original payment</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="card">Store credit</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <button type="submit" name="return">Refund $1.20</button>
                             </form>
                         </div>
                     </div>
